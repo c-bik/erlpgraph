@@ -1,9 +1,35 @@
 <!DOCTYPE html>
   <html>
     <head>
-      <title>Graph Visualization</title>
+      <title>Erlang Resources Graph Visualization</title>
+      <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
       <script type="text/javascript" src="js/graph-min.js"></script>
+      <script type="text/javascript" src="js/erlpgraph.js"></script>
+      <style type="text/css"> 
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+        font: 11px courier;
+        overflow: hidden;
+      }
+      #graph-info {
+        position: absolute;
+        top: 0px;
+        left: 40%;
+        margin: 10px;
+        background-color: #ffffe0;
+        color: #333;
+        padding: 5px 10px;
+      }
+      #options {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 10;
+      }
+    </style>
     </head>
-    <body onload="new Drawing.SimpleGraph({layout: '3d', showStats: true, showInfo: true})">
+    <body onload="start_all()">
     </body>
   </html>

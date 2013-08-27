@@ -2,19 +2,17 @@
 
 -export([all/0]).
 
+-define(NODE_PID,       0).
+-define(NODE_PORT,      1).
+-define(NODE_UNKNOWN,   2).
+
 all() ->
     All = erlang:processes() ++ erlang:ports(),
+    %All = [erlang:whereis(P) || P <- erlang:registered()],
 
     Vertices = lists:foldl(
         fun(PID, Acc) ->
-            case catch erlang:process_info(PID, registered_name) of
-                {registered_name, Name} -> [{PID, pid_reg, atom_to_list(Name)} | Acc];
-                _ ->
-                    case catch erlang:port_info(PID, name) of
-                        {name, Name} -> [{PID, port_reg, Name} | Acc];
-                        _ -> [{PID, unnamed, pid_to_list(PID)} | Acc]
-                    end
-            end
+            [port_or_pid_to_obj(PID) | Acc]
         end,
         [],
         All),
@@ -37,12 +35,13 @@ all() ->
         [],
         All),
 
+    % prepare unique edges list (undirected graph)
     Edges = lists:foldl(
         fun({PID, Links}, Acc) ->
             case lists:keyfind(PID, 1, Acc) of
                 false ->
                     case lists:keyfind(PID, 2, Acc) of
-                        false -> [{PID,L} || L <- Links] ++ Acc;
+                        false -> [[port_or_pid_to_obj(PID),port_or_pid_to_obj(L)] || L <- Links] ++ Acc;
                         _ -> Acc
                     end;
                 _ -> Acc
@@ -51,4 +50,15 @@ all() ->
         [],
         Edges0),
 
-    {Vertices, Edges}.
+    lager:info("~s~n~s", [binary_to_list(jsx:prettify(jsx:encode(Vertices))), binary_to_list(jsx:prettify(jsx:encode(Edges)))]),
+    jsx:encode([{<<"vertices">>, Vertices}, {<<"edges">>, Edges}]).
+
+port_or_pid_to_obj(PID) ->
+    case catch erlang:process_info(PID, registered_name) of
+        {registered_name, Name} -> [{<<"type">>, ?NODE_PID}, {<<"name">>, list_to_binary(atom_to_list(Name))}];
+        _ ->
+            case catch erlang:port_info(PID, name) of
+                {name, Name} -> [{<<"type">>, ?NODE_PORT}, {<<"name">>, list_to_binary(Name)}];
+                _ -> [{<<"type">>, ?NODE_UNKNOWN}, {<<"name">>, list_to_binary(pid_to_list(PID))}]
+            end
+    end.

@@ -14,7 +14,7 @@ start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
 		{'_', [
             {"/", erlpgraph, []},
-            {"/app/[...]", erlpgraph_resource, []},
+            {"/graph/[...]", erlpgraph_resource, []},
             {"/[...]", cowboy_static, [
                 {directory, {priv_dir, erlpgraph, []}},
                 {mimetypes, {fun mimetypes:path_to_mimes/2, default}}
